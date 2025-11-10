@@ -13,43 +13,43 @@ jobs:
       run:
         working-directory: examples/rg001-vnet
 
-    env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-
     steps:
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Login to Azure using Service Principal
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Step 3: Setup Terraform
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.13.4
 
-      # Optional: debug secrets (safe to remove after verification)
-      - name: Debug Azure env vars
-        run: |
-          echo "ARM_CLIENT_ID: $ARM_CLIENT_ID"
-          echo "ARM_TENANT_ID: $ARM_TENANT_ID"
-          echo "ARM_SUBSCRIPTION_ID: $ARM_SUBSCRIPTION_ID"
-
+      # Step 4: Terraform fmt
       - name: Terraform fmt
         run: terraform fmt -check
 
+      # Step 5: Terraform init
       - name: Terraform init
         run: terraform init -input=false
 
+      # Step 6: Terraform validate
       - name: Terraform validate
         run: terraform validate
 
+      # Step 7: Terraform plan
       - name: Terraform plan
         id: plan
         run: |
           terraform plan -input=false -out=tfplan
           terraform show -json tfplan > plan.json
 
+      # Step 8: Upload plan artifact
       - name: Upload plan artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -59,7 +59,7 @@ jobs:
             examples/rg001-vnet/plan.json
             examples/rg001-vnet/tfplan
 
-      # Apply only on pushes to main
+      # Step 9: Apply only on pushes to main
       - name: Terraform apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -input=false -auto-approve tfplan
