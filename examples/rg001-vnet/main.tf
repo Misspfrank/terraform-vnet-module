@@ -1,6 +1,19 @@
-terraform {
-  required_version = ">= 1.3"
+#terraform {
+  #required_version = ">= 1.3"
   #backend "local" {} # change to azurerm backend for remote state in prod
+#}
+
+#provider "azurerm" {
+  #features {}
+#}
+
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 4.0"
+    }
+  }
 }
 
 provider "azurerm" {
