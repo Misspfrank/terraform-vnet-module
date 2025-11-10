@@ -10,7 +10,6 @@ on:
 
 jobs:
   terraform:
-    name: Terraform
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,18 +25,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Terraform CLI
+      - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.13.4
 
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: Terraform fmt
         run: terraform fmt -check
+
+      # ADD THIS DEBUGGING STEP HERE
+      - name: Debug Azure Env Vars
+        run: |
+          echo "Client ID: $ARM_CLIENT_ID"
+          echo "Tenant ID: $ARM_TENANT_ID"
+          echo "Subscription ID: $ARM_SUBSCRIPTION_ID"
 
       - name: Terraform init
         run: terraform init -input=false
@@ -46,11 +47,8 @@ jobs:
         run: terraform validate
 
       - name: Terraform plan
-        id: plan
-        run: |
-          terraform plan -input=false -out=tfplan
-          terraform show -json tfplan > plan.json
-
+        run: terraform plan -input=false -out=tfplan
+        
       - name: Upload plan artifact
         if: always()
         uses: actions/upload-artifact@v4
