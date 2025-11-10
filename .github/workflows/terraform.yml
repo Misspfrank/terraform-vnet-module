@@ -15,6 +15,7 @@ jobs:
       run:
         working-directory: examples/rg001-vnet
 
+    # Azure service principal credentials for Terraform
     env:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
@@ -33,7 +34,7 @@ jobs:
       - name: Terraform fmt
         run: terraform fmt -check
 
-      # ADD THIS DEBUGGING STEP HERE
+      # 👇 Optional: debugging step to verify secrets
       - name: Debug Azure Env Vars
         run: |
           echo "Client ID: $ARM_CLIENT_ID"
@@ -47,8 +48,11 @@ jobs:
         run: terraform validate
 
       - name: Terraform plan
-        run: terraform plan -input=false -out=tfplan
-        
+        id: plan
+        run: |
+          terraform plan -input=false -out=tfplan
+          terraform show -json tfplan > plan.json
+
       - name: Upload plan artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -58,7 +62,7 @@ jobs:
             examples/rg001-vnet/plan.json
             examples/rg001-vnet/tfplan
 
-      # Apply step — run only on pushes to main to avoid accidental applies from PRs
+      # 👇 Apply only when code is merged into main (to prevent accidental applies)
       - name: Terraform apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -input=false -auto-approve tfplan
