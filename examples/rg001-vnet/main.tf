@@ -1,10 +1,10 @@
 #terraform {
-  #required_version = ">= 1.3"
-  #backend "local" {} # change to azurerm backend for remote state in prod
+#required_version = ">= 1.3"
+#backend "local" {} # change to azurerm backend for remote state in prod
 #}
 
 #provider "azurerm" {
-  #features {}
+#features {}
 #}
 
 terraform {
